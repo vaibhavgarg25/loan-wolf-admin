@@ -47,15 +47,7 @@ export function RecentLoans() {
             </p>
           </div>
           <div className="ml-auto">
-            <Badge
-              variant={
-                loan.status === "Approved"
-                  ? "success"
-                  : loan.status === "Funded"
-                  ? "default"
-                  : "secondary"
-              }
-            >
+            <Badge color={loan.status === "Pending" ? "yellow" : loan.status === "Approved" ? "green" : "blue"}>
               {loan.status}
             </Badge>
           </div>
