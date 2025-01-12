@@ -1,28 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React, { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase/config"; // Ensure this path points to your Firebase config file
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const HelpDesk = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Fetch users (dummy data)
+  // Fetch users from Firestore
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // Simulate a delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        setLoading(true);
+        const usersCollection = collection(db, "users"); // Replace 'users' with the actual collection name in Firestore
+        const querySnapshot = await getDocs(usersCollection);
 
-        // Dummy user data
-        const fetchedUsers = [
-          { id: '1', name: 'John Doe', status: 'Active', createdAt: { seconds: 1627847287 } },
-          { id: '2', name: 'Jane Smith', status: 'Inactive', createdAt: { seconds: 1627847287 } },
-          { id: '3', name: 'Alice Johnson', status: 'Active', createdAt: { seconds: 1627847287 } },
-        ];
+        const fetchedUsers = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
         setUsers(fetchedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -40,7 +42,7 @@ const HelpDesk = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-5xl font-bold tracking-tight">User List</h2>
       </div>
-      <Card className='h-[83%] overflow-hidden pb-5'>
+      <Card className="h-[83%] overflow-hidden pb-5">
         <CardHeader>
           <CardTitle>All Users</CardTitle>
         </CardHeader>
@@ -54,20 +56,33 @@ const HelpDesk = () => {
           ) : (
             <div className="space-y-4 overflow-y-auto h-[80vh] scrollbar-hide">
               {users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center space-x-4">
                     <Avatar>
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.id}`} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage
+                        src={user.photoURL || `https://i.pravatar.cc/150?u=${user.id}`}
+                        alt={user.name || "User"}
+                      />
+                      <AvatarFallback>
+                        {user.firstName ? user.firstName.charAt(0) : "?"}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.name}</p>
+                      <p className="font-medium">{user.firstName || "Unknown User"}</p>
                       <p className="text-sm text-muted-foreground">User ID: {user.id}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{user.status}</p>
-                    <p className="text-sm text-muted-foreground">Joined {new Date(user.createdAt.seconds * 1000).toLocaleString()}</p>
+                    <p className="font-medium">{user.status || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Joined{" "}
+                      {user.createdAt
+                        ? new Date(user.createdAt.seconds * 1000).toLocaleString()
+                        : "Unknown"}
+                    </p>
                   </div>
                 </div>
               ))}
