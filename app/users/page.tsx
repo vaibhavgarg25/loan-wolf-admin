@@ -58,7 +58,7 @@ const UsersPage: React.FC = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const usersCollection = collection(db, "users");
+        const usersCollection = collection(db, "borrower"||"lender");
         const querySnapshot = await getDocs(usersCollection);
 
         const fetchedUsers = querySnapshot.docs.map((doc) => ({
